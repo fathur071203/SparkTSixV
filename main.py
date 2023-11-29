@@ -5,13 +5,18 @@ import numpy as np
 import datetime
 import time
 import streamlit as st
-from yolov5.models.experimental import attempt_load
-from yolov5.utils.general import non_max_suppression
+import os  # Add this import
 
 # Video feed
 uploaded_file = st.file_uploader("Choose a video file", type=["mp4", "avi"])
 if uploaded_file is not None:
-    cap = cv2.VideoCapture(uploaded_file)
+    # Save the uploaded file locally
+    video_path = "uploaded_video.mp4"
+    with open(video_path, "wb") as video_file:
+        video_file.write(uploaded_file.read())
+
+    # Use the saved file path in VideoCapture
+    cap = cv2.VideoCapture(video_path)
 else:
     st.warning("Please upload a video file.")
     st.stop()
@@ -20,7 +25,7 @@ net = cv2.dnn.readNetFromONNX("C:\\Users\\M Fathurrahman\\Documents\\computer-vi
 classes = ['mobil', 'mobil', 'mobil', 'mobil', 'mobil', 'mobil', 'mobil', 'mobil', 'mobil']
 frameSize = [852, 480]
 cv2_fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-video_path = "Video\Hasil/"
+# video_path = "Video\Hasil/"  # This line is not needed
 timestamp_video = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 out = cv2.VideoWriter(video_path + f"Video_{timestamp_video}.mp4", cv2_fourcc, cap.get(cv2.CAP_PROP_FPS) - 10, frameSize)
 
@@ -61,6 +66,13 @@ def checkParkingSpace(imgPro, car_boxes):  # Fungsion local
     cvzone.putTextRect(img, f'Cars: {len(posList)-spaceCounter}', (200, 50), scale=0.5, thickness=1, offset=10, colorR=(102,7,0)) 
 
 
+# Function to draw X and Y coordinate lines
+def draw_coordinate_lines(img, x, y):
+    # Draw X-axis
+    cv2.line(img, (0, y), (img.shape[1], y), (255, 0, 0), 2)
+    # Draw Y-axis
+    cv2.line(img, (x, 0), (x, img.shape[0]), (255, 0, 0), 2)
+    
 # Loop for processing video frames
 while True:
     success, img = cap.read()
